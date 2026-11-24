@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   ShoppingBag, 
   Heart, 
@@ -22,7 +22,7 @@ import {
   Globe,
   Award
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
 
 interface Product {
   id: string;
@@ -193,6 +193,29 @@ export default function App() {
   const [isBespokeModalOpen, setIsBespokeModalOpen] = useState(false);
   const [currency, setCurrency] = useState<'USD' | 'EUR' | 'GBP'>('USD');
   const [notification, setNotification] = useState<string | null>(null);
+
+  // Parallax scroll hooks
+  const heroRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress: heroScrollProgress } = useScroll({
+    target: heroRef,
+    offset: ["start start", "end start"]
+  });
+  const heroImageY = useTransform(heroScrollProgress, [0, 1], ["0%", "30%"]);
+  const heroTextOpacity = useTransform(heroScrollProgress, [0, 0.7], [1, 0]);
+
+  const philosophyRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress: philScrollProgress } = useScroll({
+    target: philosophyRef,
+    offset: ["start end", "end start"]
+  });
+  const philImageY = useTransform(philScrollProgress, [0, 1], ["-10%", "15%"]);
+
+  const bespokeRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress: bespokeScrollProgress } = useScroll({
+    target: bespokeRef,
+    offset: ["start end", "end start"]
+  });
+  const bespokeImageY = useTransform(bespokeScrollProgress, [0, 1], ["-15%", "15%"]);
 
   // Cinematic intro timer
   useEffect(() => {
@@ -383,18 +406,24 @@ export default function App() {
         </div>
       </header>
 
-      {/* HERO SECTION WITH PARALLAX VIBE */}
-      <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden bg-[#1D1B18] text-[#F8F6F0]">
-        <div className="absolute inset-0 z-0">
+      {/* HERO SECTION WITH SUBTLE PARALLAX */}
+      <section ref={heroRef} className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-[#1D1B18] text-[#F8F6F0]">
+        <motion.div 
+          style={{ y: heroImageY }}
+          className="absolute inset-0 z-0 h-[120%] -top-[10%]"
+        >
           <img 
             src="https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=2000&q=85" 
             alt="Luxury Interior Sanctuary" 
-            className="w-full h-full object-cover opacity-55 scale-105 transform hover:scale-100 transition-transform duration-1000"
+            className="w-full h-full object-cover opacity-50"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#1D1B18] via-[#1D1B18]/30 to-transparent"></div>
-        </div>
+        </motion.div>
 
-        <div className="relative z-10 max-w-5xl mx-auto px-6 py-24 text-center space-y-8">
+        <motion.div 
+          style={{ opacity: heroTextOpacity }}
+          className="relative z-10 max-w-5xl mx-auto px-6 py-24 text-center space-y-8"
+        >
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -452,11 +481,11 @@ export default function App() {
               <div className="text-[11px] uppercase tracking-widest text-neutral-400 mt-1">White-Glove Service</div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
-      {/* PHILOSOPHY & PSYCHOLOGY SECTION */}
-      <section id="philosophy" className="py-28 px-6 max-w-7xl mx-auto">
+      {/* PHILOSOPHY & PSYCHOLOGY SECTION WITH PARALLAX */}
+      <section id="philosophy" ref={philosophyRef} className="py-28 px-6 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="space-y-8">
             <span className="text-xs uppercase tracking-[0.3em] text-[#8C7A5B] font-semibold">The Philosophy of Calm</span>
@@ -478,14 +507,15 @@ export default function App() {
             </div>
           </div>
 
-          <div className="relative">
+          <div className="relative overflow-hidden">
             <div className="aspect-[4/5] overflow-hidden shadow-2xl relative">
-              <img 
+              <motion.img 
+                style={{ y: philImageY }}
                 src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=85" 
                 alt="Calm Sanctuary Interior" 
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                className="w-full h-[125%] -top-[12%] relative object-cover"
               />
-              <div className="absolute bottom-6 left-6 right-6 bg-[#F8F6F0]/90 backdrop-blur-md p-6 border border-[#E6E2D8]">
+              <div className="absolute bottom-6 left-6 right-6 bg-[#F8F6F0]/90 backdrop-blur-md p-6 border border-[#E6E2D8] z-10">
                 <span className="text-[10px] tracking-widest uppercase text-[#8C7A5B] block mb-1">Featured Curation</span>
                 <p className="font-serif text-xl text-[#1D1B18]">"The dialogue between stone, linen, and filtered light."</p>
               </div>
@@ -625,13 +655,14 @@ export default function App() {
         </div>
       </section>
 
-      {/* BESPOKE SPACES / ARCHITECTURAL INQUIRY SECTION */}
-      <section id="bespoke" className="py-28 bg-[#1D1B18] text-[#F8F6F0] relative overflow-hidden">
-        <div className="absolute inset-0 z-0 opacity-20">
-          <img 
+      {/* BESPOKE SPACES / ARCHITECTURAL INQUIRY SECTION WITH PARALLAX */}
+      <section id="bespoke" ref={bespokeRef} className="py-28 bg-[#1D1B18] text-[#F8F6F0] relative overflow-hidden">
+        <div className="absolute inset-0 z-0 opacity-20 overflow-hidden">
+          <motion.img 
+            style={{ y: bespokeImageY }}
             src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=2000&q=85" 
             alt="Bespoke Architecture" 
-            className="w-full h-full object-cover"
+            className="w-full h-[130%] -top-[15%] relative object-cover"
           />
         </div>
         <div className="relative z-10 max-w-5xl mx-auto px-6 text-center space-y-8">
